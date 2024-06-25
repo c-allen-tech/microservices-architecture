@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: false
+        tags: |
+          api-service:latest
+          frontend:latest
+          auth-service:latest
+
+    - name: Deploy to Docker Hub
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: |
+          your-dockerhub-username/api-service:latest
+          your-dockerhub-username/frontend:latest
+          your-dockerhub-username/auth-service:latest
+
+    - name: Run tests
+      run: |
+        docker-compose -f docker-compose.yml up -d
+        # Add your test commands here
+        docker-compose -f docker-compose.yml down
